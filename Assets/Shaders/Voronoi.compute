@@ -1,0 +1,56 @@
+#pragma kernel Voronoi
+
+// Create a RenderTexture with enableRandomWrite flag and set it
+// with cs.SetTexture
+RWTexture2D<float4> Result;
+float time;
+float size;
+
+float2 VoronoiRandomVectorFloat(float2 UV, float offset)
+{
+    float2x2 m = float2x2(15.27, 47.63f, 99.41f, 89.98f);
+    UV = frac(sin(mul(UV, m)));
+    return float2(
+        sin(UV.y * +offset) * 0.5f + 0.5f,
+        cos(UV.x * offset) * 0.5f + 0.5f
+    );
+}
+
+
+void Calculate(float2 UV, float AngleOffset, float CellDensity,
+               out float Out,
+               out float Cells
+)
+{
+    float2 g = floor(UV * CellDensity);
+    float2 f = frac(UV * CellDensity);
+    float t = 8.0f;
+    float3 res = float3(8, 0, 0);
+
+    for (int y = -1; y <= 1; y++)
+    {
+        for (int x = -1; x <= 1; x++)
+        {
+            float2 lattice = float2(x, y);
+            float2 offset = VoronoiRandomVectorFloat(lattice + g, AngleOffset);
+            float d = distance(lattice + offset, f);
+
+            if (d < res.x)
+            {
+                res = float3(d, offset.x, offset.y);
+                Out = res.x;
+                Cells = res.y;
+            }
+        }
+    }
+}
+
+[numthreads(16,16,1)]
+void Voronoi(uint3 id : SV_DispatchThreadID)
+{
+    float outer = 0;
+    float cells = 0;
+
+    Calculate(float2(id.x, id.y), time, size, outer, cells);
+    Result[id.xy] = float4(cells, cells, cells, 1.0);
+}
