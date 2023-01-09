@@ -36,7 +36,6 @@ public class EntryPoint : MonoBehaviour
     {
         noise.Apply(texture2D, speed * Time.time, cellDensity);
         texture2D.Apply();
-        //enabled = false;
     }
 
 
