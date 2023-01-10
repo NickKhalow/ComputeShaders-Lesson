@@ -1,0 +1,17 @@
+#pragma kernel CertainExample
+
+RWTexture2D<float4> Result;
+int width;
+int height;
+float time;
+
+[numthreads(8,8,1)]
+void CertainExample(uint3 id : SV_DispatchThreadID)
+{
+    Result[id.xy] = float4(
+        (float)id.x / width, //Red
+        (float)id.y / height, //Green
+        sin(time),
+        1
+    );
+}
